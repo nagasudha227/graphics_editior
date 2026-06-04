@@ -1,0 +1,8 @@
+# Ignore compiled binaries
+*.exe
+*.o
+*.out
+
+# Ignore editor-specific configuration folders
+.vscode/
+.idea/
