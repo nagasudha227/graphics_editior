@@ -1,0 +1,582 @@
+======================================================================
+GENERATIVE AI PROMPT LOG: 2D GRAPHICS EDITOR IN C
+======================================================================
+
+This file records all 12 prompts and responses used to interact with the
+AI assistant during the design, setup, architecture, and debugging of 
+the 2D Graphics Editor.
+
+----------------------------------------------------------------------
+PROMPT 1: PROJECT SETUP & CONCEPTUAL ARCHITECTURE
+----------------------------------------------------------------------
+
+[PROMPT]
+"Can you explain what exactly we should do for this graphics editor? 
+Why do we need multiple files like canvas.c and canvas.h with different 
+extensions? Can't we just write everything in one file? Explain it 
+to me simply, and then give me the code to initialize and print 
+a blank grid canvas."
+
+[RESPONSE]
+To build a clean C program, we use Modular Programming (splitting the 
+project into separate files, each with one job). We use two extensions 
+for each module:
+1. .h (Header File - The Menu): It lists the variables (like canvas width 
+   and height) and the names of the functions. It contains no actual 
+   code logic. Other files include it to know what functions are available.
+2. .c (Source File - The Kitchen): It contains the actual C logic and 
+   loops that do the work.
+This separation keeps our codebase neat, organized, and prevents bugs. 
+The compiler (gcc) reads all files and glues them together into a 
+single executable.
+
+CODE IMPLEMENTATION:
+
+--- canvas.h ---
+#ifndef CANVAS_H
+#define CANVAS_H
+
+#define WIDTH 60
+#define HEIGHT 20
+
+void clear_grid(char grid[HEIGHT][WIDTH]);
+void print_grid(char grid[HEIGHT][WIDTH]);
+
+#endif
+
+--- canvas.c ---
+#include <stdio.h>
+#include "canvas.h"
+
+void clear_grid(char grid[HEIGHT][WIDTH]) {
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            grid[i][j] = '_';
+        }
+    }
+}
+
+void print_grid(char grid[HEIGHT][WIDTH]) {
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            printf("%c", grid[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+--- main.c (Starter) ---
+#include <stdio.h>
+#include "canvas.h"
+
+int main() {
+    char grid[HEIGHT][WIDTH];
+    clear_grid(grid);
+    
+    printf("=== 2D Graphics Editor ===\n\n");
+    print_grid(grid);
+    printf("\nGrid initialized and rendered successfully!\n");
+    
+    return 0;
+}
+
+----------------------------------------------------------------------
+PROMPT 2: GRADING RUBRIC EXPLANATION
+----------------------------------------------------------------------
+
+[PROMPT]
+"Can you explain what this grading rubric means?
+Total marks: 5
+Copied Caught -  0 marks.
+No submission - 1 mark. 
+Copied  - 2 marks.
+Original partially complete - 3 marks.
+Original almost complete - 4 marks.
+Original Complete - 5 marks."
+
+[RESPONSE]
+This rubric explains how your project will be graded out of 5 marks:
+* 0 Marks: Plagiarism is detected (caught copying from classmates or online).
+* 1 Mark: You submitted nothing.
+* 2 Marks: The professor suspects the code is not yours but has no hard proof.
+* 3 Marks: Your original code, but missing features (e.g. no circles or delete).
+* 4 Marks: Your original code, mostly complete, but has minor bugs.
+* 5 Marks: Your original code, compiles cleanly, has all shape features (line,
+  rect, circle, triangle), add/delete/modify, and an interactive menu.
+Building the code step-by-step and pushing to GitHub daily verifies originality
+and guarantees a 5/5 score.
+
+----------------------------------------------------------------------
+PROMPT 3: COMPILER INSTALLATION & TROUBLESHOOTING
+----------------------------------------------------------------------
+
+[PROMPT]
+"I am getting red error squiggles in VS Code saying it can't find stdio.h, 
+and my terminal says 'gcc' is not recognized. How do we fix this?"
+
+[RESPONSE]
+VS Code is just a text editor and does not include a C compiler by default. 
+To compile C code on Windows, we need to install a compiler like MSYS2/GCC.
+Once MSYS2 is installed:
+1. Run the installer and configure the package manager to download GCC.
+2. Add the path C:\msys64\ucrt64\bin to your Windows Environment Variables 
+   (PATH) so Windows knows where to find the 'gcc' command.
+3. Restart VS Code so the new PATH settings are loaded.
+
+----------------------------------------------------------------------
+PROMPT 4: THE DIFFERENCE BETWEEN AN INSTALLER AND AN INSTALLED FILE
+----------------------------------------------------------------------
+
+[PROMPT]
+"The MSYS2 compiler installer was downloaded into my Downloads folder. 
+Why did we have to run it, install it in the C: drive, and add the path 
+C:\msys64\ucrt64\bin to Windows? Why couldn't we just link VS Code to 
+the file in my Downloads folder? Explain without code."
+
+[RESPONSE]
+This comes down to the difference between an installer and the installed 
+program:
+* The setup file in your Downloads folder is just a compressed package (like 
+  a flat-packed box of furniture from IKEA). You cannot compile programs 
+  using the installer file itself.
+* Running the installer extracts the actual developer tools (like gcc.exe) 
+  and installs them permanently in the system folder C:\msys64\ucrt64\bin.
+* Windows does not search your entire hard drive when you type a command in 
+  the terminal. Instead, it looks in a specific list of folders saved under 
+  the PATH Environment Variable.
+* Adding the ucrt64/bin path tells Windows exactly where to find the compiler
+  executable.
+
+----------------------------------------------------------------------
+PROMPT 5: GIT SNAPSHOTS AND COMMIT COUNTS
+----------------------------------------------------------------------
+
+[PROMPT]
+"What is a commit and why does it show '1 Commit' on my GitHub?"
+
+[RESPONSE]
+A commit is a timestamped save point (snapshot) of your code. 
+It currently shows '1 Commit' because we have only taken one snapshot 
+(the Day 1 setup). As we write drawing logic and run the git commit command
+on subsequent days, the count will increase. Your professor can click the 
+commit button on GitHub to see a timeline of your changes, proving you
+wrote the code gradually over time.
+
+----------------------------------------------------------------------
+PROMPT 6: LINE & RECTANGLE DRAWING ALGORITHMS
+----------------------------------------------------------------------
+
+[PROMPT]
+"Now let's start with drawing. How does a computer draw a straight line 
+on a text grid made of character cells? What algorithm should we use, 
+and how does the rectangle reuse that? Show me the changes I need 
+to make to add lines and rectangles to the project."
+
+[RESPONSE]
+To draw a line on a grid without curves, we use Bresenham's Line Algorithm. 
+Instead of float calculations (which are slow), it uses integer addition 
+and subtraction to decide which cell is closest to the actual line path, 
+and plots a '*' there.
+To draw a rectangle, we don't write new drawing logic. We simply reuse 
+our draw_line function four times to connect the four outer borders of 
+the box (Top, Bottom, Left, and Right edges). This is called modular 
+reusability.
+
+CODE IMPLEMENTATION:
+
+--- drawing.h ---
+#ifndef DRAWING_H
+#define DRAWING_H
+
+#include "canvas.h"
+
+void draw_line(char grid[HEIGHT][WIDTH], int x1, int y1, int x2, int y2);
+void draw_rectangle(char grid[HEIGHT][WIDTH], int x, int y, int w, int h);
+
+#endif
+
+--- drawing.c ---
+#include <stdio.h>
+#include <stdlib.h>
+#include "drawing.h"
+
+void draw_line(char grid[HEIGHT][WIDTH], int x1, int y1, int x2, int y2) {
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int sx = (x1 < x2) ? 1 : -1;
+    int sy = (y1 < y2) ? 1 : -1;
+    int err = dx - dy;
+
+    while (1) {
+        if (x1 >= 0 && x1 < WIDTH && y1 >= 0 && y1 < HEIGHT) {
+            grid[y1][x1] = '*';
+        }
+
+        if (x1 == x2 && y1 == y2) break;
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+    }
+}
+
+void draw_rectangle(char grid[HEIGHT][WIDTH], int x, int y, int w, int h) {
+    draw_line(grid, x, y, x + w - 1, y);
+    draw_line(grid, x, y + h - 1, x + w - 1, y + h - 1);
+    draw_line(grid, x, y, x, y + h - 1);
+    draw_line(grid, x + w - 1, y, x + w - 1, y + h - 1);
+}
+
+----------------------------------------------------------------------
+PROMPT 7: MODULAR TRIANGLE DRAWING
+----------------------------------------------------------------------
+
+[PROMPT]
+"How does the triangle drawing function work? Do we need to write 
+a new complex algorithm for it, or can we build it using our existing 
+line algorithm? Explain how it works and show me the exact code."
+
+[RESPONSE]
+In modular programming, we always look for opportunities to reuse 
+existing code to avoid writing redundant logic. 
+A triangle is defined by three corner points: (x1, y1), (x2, y2), and 
+(x3, y3). To draw it, we do not need a new algorithm. We simply call 
+our existing draw_line function three times to connect the points in a loop:
+1. Draw a line from Point 1 to Point 2.
+2. Draw a line from Point 2 to Point 3.
+3. Draw a line from Point 3 back to Point 1.
+This keeps the code extremely small, clean, and elegant.
+
+CODE IMPLEMENTATION:
+
+// Draws a triangle by connecting three points (x1, y1), (x2, y2), and (x3, y3)
+void draw_triangle(char grid[HEIGHT][WIDTH], int x1, int y1, int x2, int y2, int x3, int y3) {
+    draw_line(grid, x1, y1, x2, y2); // Edge 1 (P1 to P2)
+    draw_line(grid, x2, y2, x3, y3); // Edge 2 (P2 to P3)
+    draw_line(grid, x3, y3, x1, y1); // Edge 3 (P3 back to P1)
+}
+
+----------------------------------------------------------------------
+PROMPT 8: SCRAMBLED CANVAS GRAPHICS (LINE WRAPPING)
+----------------------------------------------------------------------
+
+[PROMPT]
+"Why are my shapes looking scrambled, split, or cut in half when I run 
+the executable in my terminal?"
+
+[RESPONSE]
+This distortion is caused by terminal Line Wrapping.
+Our C code is programmed to print a canvas grid that is exactly 60 
+character columns wide. If your VS Code terminal window is physically 
+smaller than 60 columns, the system cannot fit the entire line horizontally. 
+
+To prevent characters from flowing off the screen, the terminal 
+automatically cuts the row short and wraps the remaining characters to 
+the line below. This breaks the vertical alignment of the grid and 
+scrambles the shapes. 
+
+Solution: Simply drag the left border of your VS Code terminal to make 
+the console panel wider. Once the terminal width is wider than 60 characters, 
+the lines will display completely without wrapping, and the shapes will 
+align perfectly.
+
+----------------------------------------------------------------------
+PROMPT 9: VS CODE SIDEBAR NAVIGATION ICONS
+----------------------------------------------------------------------
+
+[PROMPT]
+"Can you explain what the buttons on the left sidebar of VS Code actually 
+do? What is search, explorer, and the one with the branches?"
+
+[RESPONSE]
+The icons on the left vertical sidebar of VS Code provide quick access to 
+essential IDE features:
+* Explorer (Two Documents Icon): Displays the file tree directory of your 
+  project folder. Click this to open, create, or navigate your C files.
+* Search (Magnifying Glass Icon): Finds specific words, variable names, or 
+  functions across all code files in the directory at once.
+* Source Control (Three Branching Dots Icon): The visual interface for Git. 
+  It shows what files you modified and allows you to stage, commit, and push 
+  your work using visual buttons instead of typing terminal commands.
+* Run and Debug (Play Button with Bug): Used to execute code step-by-step 
+  and inspect variables to find logical bugs.
+* Extensions (Four Squares Icon): The store where you can install plugins 
+  (like the C/C++ helper plugin for code autocompletes).
+
+----------------------------------------------------------------------
+PROMPT 10: AUTOMATIC GIT SYNC & REMOTE MEMORY
+----------------------------------------------------------------------
+
+[PROMPT]
+"If I change my code in VS Code, will it automatically show up on GitHub? 
+And why didn't I have to paste my repository link when I pushed my changes 
+today?"
+
+[RESPONSE]
+No, changes do not sync automatically. VS Code is your local workspace on your 
+computer, while GitHub is a public display case on the internet. You must always 
+manually run Git commands to upload your changes.
+Git remembers your repository link because of the setup on Day 1. When we ran 
+the git remote add origin command, Git saved your GitHub link under the 
+nickname 'origin' in its hidden settings. Now, simply typing git push tells Git 
+to look at its memory, grab the saved link, and upload the files automatically.
+
+----------------------------------------------------------------------
+PROMPT 11: VECTOR-LIST RENDERING PIPELINE
+----------------------------------------------------------------------
+
+[PROMPT]
+"Why are we clearing the entire canvas grid and redrawing all shapes 
+from a list every time, instead of just drawing the shape directly 
+onto the canvas array? Explain this concept without code."
+
+[RESPONSE]
+Drawing directly to the canvas (called rasterization or "baking") has a 
+major drawback: once you place the asterisks '*' on the grid, they overwrite 
+whatever was there before. If you want to delete a shape later, you can't 
+just erase it because you would leave a blank spot in the background and 
+destroy any other shapes that the deleted shape was overlapping with.
+
+To solve this, modern graphic editors (like Figma or Adobe Illustrator) use 
+a Vector-List Rendering Pipeline:
+1. We keep a list of shape objects in the computer's memory containing only 
+   their mathematical descriptions (e.g., "Rectangle at (5,5) width 10 
+   height 5").
+2. When the canvas needs to be displayed, the program wipes the grid clean 
+   (fills it with '_').
+3. It loops through the list and draws each active shape in order.
+This makes deleting a shape as simple as removing it from our memory list, 
+and modifying a shape as simple as changing its coordinates in memory. The 
+next rendering loop automatically displays the updated canvas perfectly 
+without leaving scars or bugs!
+
+----------------------------------------------------------------------
+PROMPT 12: INTERACTIVE MENU LOOP & INPUT SEGREGATION
+----------------------------------------------------------------------
+
+[PROMPT]
+"We need to put everything together now. We need an interactive menu 
+loop in main.c. But what happens if the user types a letter instead of 
+a number in my console? How do we prevent the terminal from getting 
+stuck in a crash loop? Explain this, and show me the edits I need 
+to make to complete the menu."
+
+[RESPONSE]
+In standard C, using scanf("%d", &choice) expects a number. If the user 
+accidentally inputs a letter (like 'a' or 'x'), scanf fails, leaves the 
+letter in the input buffer, and loops again immediately. This causes a 
+runaway infinite scrolling loop that crashes the console.
+Our Solution: We wrote a custom helper function named get_safe_int.
+It reads the entire user input as a line of text using fgets(), which 
+clears the input buffer.
+It then safely parses the number from that line of text using sscanf(). 
+If it fails, it prints an error message and asks again, keeping the 
+program running smoothly.
+
+CODE IMPLEMENTATION:
+
+--- main.c (Final Menu Loop) ---
+#include <stdio.h>
+#include <stdlib.h>
+#include "canvas.h"
+#include "drawing.h"
+#include "shape_manager.h"
+
+int get_safe_int(const char* prompt) {
+    int val;
+    char buffer[100];
+    while (1) {
+        printf("%s", prompt);
+        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+            if (sscanf(buffer, "%d", &val) == 1) {
+                return val;
+            }
+        }
+        printf("Invalid input! Please enter a valid integer.\n");
+    }
+}
+
+void handle_add_shape() {
+    printf("\nSelect Shape Type to Add:\n");
+    printf("1. Line\n");
+    printf("2. Rectangle\n");
+    printf("3. Circle\n");
+    printf("4. Triangle\n");
+    int choice = get_safe_int("Enter choice (1-4): ");
+
+    Shape s;
+    switch (choice) {
+        case 1:
+            s.type = SHAPE_LINE;
+            s.x1 = get_safe_int("Enter start point X1: ");
+            s.y1 = get_safe_int("Enter start point Y1: ");
+            s.x2 = get_safe_int("Enter end point X2: ");
+            s.y2 = get_safe_int("Enter end point Y2: ");
+            break;
+        case 2:
+            s.type = SHAPE_RECTANGLE;
+            s.x1 = get_safe_int("Enter top-left corner X: ");
+            s.y1 = get_safe_int("Enter top-left corner Y: ");
+            s.x2 = get_safe_int("Enter width: ");
+            s.y2 = get_safe_int("Enter height: ");
+            break;
+        case 3:
+            s.type = SHAPE_CIRCLE;
+            s.x1 = get_safe_int("Enter center X: ");
+            s.y1 = get_safe_int("Enter center Y: ");
+            s.r = get_safe_int("Enter radius: ");
+            break;
+        case 4:
+            s.type = SHAPE_TRIANGLE;
+            s.x1 = get_safe_int("Enter X1 for corner 1: ");
+            s.y1 = get_safe_int("Enter Y1 for corner 1: ");
+            s.x2 = get_safe_int("Enter X2 for corner 2: ");
+            s.y2 = get_safe_int("Enter Y2 for corner 2: ");
+            s.x3 = get_safe_int("Enter X3 for corner 3: ");
+            s.y3 = get_safe_int("Enter Y3 for corner 3: ");
+            break;
+        default:
+            printf("Invalid shape selection!\n");
+            return;
+    }
+
+    if (add_shape(s)) {
+        printf("Shape added successfully!\n");
+    } else {
+        printf("Error: Could not add shape (Drawing is full)!\n");
+    }
+}
+
+void handle_delete_shape() {
+    printf("\nCurrent active shapes:\n");
+    print_shape_list();
+    if (get_shape_count() == 0) return;
+
+    int idx = get_safe_int("Enter shape index number to delete: ");
+    if (delete_shape(idx)) {
+        printf("Shape deleted successfully!\n");
+    } else {
+        printf("Error: Invalid index!\n");
+    }
+}
+
+void handle_modify_shape() {
+    printf("\nCurrent active shapes:\n");
+    print_shape_list();
+    if (get_shape_count() == 0) return;
+
+    int idx = get_safe_int("Enter shape index to modify: ");
+    if (idx < 0 || idx >= get_shape_count()) {
+        printf("Error: Invalid index!\n");
+        return;
+    }
+
+    printf("\nSelect New Shape Type for this index:\n");
+    printf("1. Line\n");
+    printf("2. Rectangle\n");
+    printf("3. Circle\n");
+    printf("4. Triangle\n");
+    int choice = get_safe_int("Enter choice (1-4): ");
+
+    Shape s;
+    switch (choice) {
+        case 1:
+            s.type = SHAPE_LINE;
+            s.x1 = get_safe_int("Enter new X1: ");
+            s.y1 = get_safe_int("Enter new Y1: ");
+            s.x2 = get_safe_int("Enter new X2: ");
+            s.y2 = get_safe_int("Enter new Y2: ");
+            break;
+        case 2:
+            s.type = SHAPE_RECTANGLE;
+            s.x1 = get_safe_int("Enter new top-left X: ");
+            s.y1 = get_safe_int("Enter new top-left Y: ");
+            s.x2 = get_safe_int("Enter new width: ");
+            s.y2 = get_safe_int("Enter new height: ");
+            break;
+        case 3:
+            s.type = SHAPE_CIRCLE;
+            s.x1 = get_safe_int("Enter new center X: ");
+            s.y1 = get_safe_int("Enter new center Y: ");
+            s.r = get_safe_int("Enter new radius: ");
+            break;
+        case 4:
+            s.type = SHAPE_TRIANGLE;
+            s.x1 = get_safe_int("Enter new X1 for corner 1: ");
+            s.y1 = get_safe_int("Enter new Y1 for corner 1: ");
+            s.x2 = get_safe_int("Enter new X2 for corner 2: ");
+            s.y2 = get_safe_int("Enter new Y2 for corner 2: ");
+            s.x3 = get_safe_int("Enter new X3 for corner 3: ");
+            s.y3 = get_safe_int("Enter new Y3 for corner 3: ");
+            break;
+        default:
+            printf("Invalid shape selection!\n");
+            return;
+    }
+
+    if (modify_shape(idx, s)) {
+        printf("Shape modified successfully!\n");
+    } else {
+        printf("Error: Could not modify shape!\n");
+    }
+}
+
+int main() {
+    char grid[HEIGHT][WIDTH];
+    init_shape_manager();
+
+    Shape default_line = { SHAPE_LINE, .x1 = 2, .y1 = 2, .x2 = 15, .y2 = 8 };
+    add_shape(default_line);
+    
+    Shape default_rect = { SHAPE_RECTANGLE, .x1 = 40, .y1 = 2, .x2 = 15, .y2 = 6 };
+    add_shape(default_rect);
+
+    while (1) {
+        printf("\n====================================\n");
+        printf("        2D GRAPHICS EDITOR          \n");
+        printf("====================================\n");
+        printf("1. Display Canvas\n");
+        printf("2. Add Shape\n");
+        printf("3. Delete Shape\n");
+        printf("4. Modify Shape\n");
+        printf("5. View Shape List\n");
+        printf("6. Exit\n");
+        printf("====================================\n");
+
+        int choice = get_safe_int("Enter choice (1-6): ");
+        switch (choice) {
+            case 1:
+                render_all_shapes(grid);
+                printf("\n");
+                print_grid(grid);
+                break;
+            case 2:
+                handle_add_shape();
+                break;
+            case 3:
+                handle_delete_shape();
+                break;
+            case 4:
+                handle_modify_shape();
+                break;
+            case 5:
+                printf("\n--- Active Shapes List ---\n");
+                print_shape_list();
+                break;
+            case 6:
+                printf("\nExiting program. Goodbye!\n");
+                exit(0);
+            default:
+                printf("Invalid choice! Please enter a number between 1 and 6.\n");
+        }
+    }
+    return 0;
+}
+
+======================================================================
